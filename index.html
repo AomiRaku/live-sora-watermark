@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- By Github:@AomiRaku，Bilibili:@羽梦千景。该代码由豆包辅助编写。-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated GIF Sequence</title>
+  <!-- Tailwind CSS v3 -->
+  <script src="js/tailwind.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          transitionTimingFunction: {
+            'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+          },
+        },
+      }
+    }
+  </script>
+
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .gif-transition {
+        transition: opacity 0.6s ease-smooth, transform 0.6s ease-smooth, visibility 0.6s ease-smooth;
+      }
+      .gif-hidden {
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(0.9);
+      }
+      .gif-visible {
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1);
+      }
+    }
+  </style>
+</head>
+<body class="bg-transparent overflow-hidden">
+
+<div id="gif1" class="absolute top-4 left-4 gif-hidden gif-transition z-10">
+  <img src="gif/01.gif" alt="GIF 1" class="h-[15vh] opacity-90 object-contain">  <!-- 水印gif高度为15%页面高度，透明度为90%，下同 -->
+</div>
+
+
+<div id="gif2" class="absolute top-1/2 right-4 transform -translate-y-1/2 gif-hidden gif-transition z-10">
+  <img src="gif/02.gif" alt="GIF 2" class="h-[15vh] opacity-90 object-contain">
+</div>
+
+
+<div id="gif3" class="absolute bottom-4 left-4 gif-hidden gif-transition z-10">
+  <img src="gif/01.gif" alt="GIF 3" class="h-[15vh] opacity-90 object-contain">
+</div>
+
+<script>
+  // 获取GIF元素
+  const gif1 = document.getElementById('gif1');
+  const gif2 = document.getElementById('gif2');
+  const gif3 = document.getElementById('gif3');
+
+  // 每个GIF显示的时间（毫秒）
+  const displayTime = 4000; // 4秒
+  // 过渡动画时间
+  const transitionDuration = 0; // 无间隔
+
+  // 显示指定的GIF
+  function showGif(gif) {
+    return new Promise(resolve => {
+      gif.classList.remove('gif-hidden');
+      gif.classList.add('gif-visible');
+      setTimeout(resolve, transitionDuration);
+    });
+  }
+
+  // 隐藏指定的GIF
+  function hideGif(gif) {
+    return new Promise(resolve => {
+      gif.classList.remove('gif-visible');
+      gif.classList.add('gif-hidden');
+      setTimeout(resolve, transitionDuration);
+    });
+  }
+
+  // 隐藏所有GIF
+  function hideAllGifs() {
+    [gif1, gif2, gif3].forEach(gif => {
+      gif.classList.remove('gif-visible');
+      gif.classList.add('gif-hidden');
+    });
+  }
+
+  // 延迟函数
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // 动画序列
+  async function playAnimationSequence() {
+    try {
+      // 重置所有GIF状态
+      hideAllGifs();
+      await delay(100);
+
+      // 显示第一幅GIF
+      await showGif(gif1);
+      await delay(displayTime);
+      await hideGif(gif1);
+
+      // 显示第二幅GIF
+      await showGif(gif2);
+      await delay(displayTime);
+      await hideGif(gif2);
+
+      // 显示第三幅GIF
+      await showGif(gif3);
+      await delay(displayTime);
+      await hideGif(gif3);
+
+      // 短暂停顿后重新开始循环
+      await delay(300);
+      playAnimationSequence();
+    } catch (error) {
+      console.error('动画出错:', error);
+      // 出错时重试
+      setTimeout(playAnimationSequence, 1000);
+    }
+  }
+
+  // 页面加载完成后开始动画
+  window.addEventListener('load', playAnimationSequence);
+
+  // 监听窗口大小变化，确保位置始终正确
+  window.addEventListener('resize', () => {
+    // 重新计算位置（使用CSS定位已自动处理，这里仅作保险）
+    hideAllGifs();
+  });
+</script>
+</body>
+</html>
