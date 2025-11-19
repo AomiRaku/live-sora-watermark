@@ -41,17 +41,17 @@
 <body class="bg-transparent overflow-hidden">
 
 <div id="gif1" class="absolute top-4 left-4 gif-hidden gif-transition z-10">
-  <img src="gif/01.gif" alt="GIF 1" class="h-[15vh] opacity-90 object-contain">  <!-- 水印gif高度为15%页面高度，透明度为90%，下同 -->
+  <img src="gif/001.gif" alt="GIF 1" class="h-[15vh] opacity-90 object-contain">  <!-- 水印gif高度为15%页面高度，透明度为90%，下同 -->
 </div>
 
 
 <div id="gif2" class="absolute top-1/2 right-4 transform -translate-y-1/2 gif-hidden gif-transition z-10">
-  <img src="gif/02.gif" alt="GIF 2" class="h-[15vh] opacity-90 object-contain">
+  <img src="gif/002.gif" alt="GIF 2" class="h-[15vh] opacity-90 object-contain">
 </div>
 
 
 <div id="gif3" class="absolute bottom-4 left-4 gif-hidden gif-transition z-10">
-  <img src="gif/01.gif" alt="GIF 3" class="h-[15vh] opacity-90 object-contain">
+  <img src="gif/001.gif" alt="GIF 3" class="h-[15vh] opacity-90 object-contain">
 </div>
 
 <script>
@@ -118,8 +118,8 @@
       await delay(displayTime);
       await hideGif(gif3);
 
-      // 短暂停顿后重新开始循环
-      await delay(300);
+      // 重新开始循环
+      await delay(0);
       playAnimationSequence();
     } catch (error) {
       console.error('动画出错:', error);
@@ -138,4 +138,5 @@
   });
 </script>
 </body>
+
 </html>
