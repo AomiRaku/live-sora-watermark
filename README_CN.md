@@ -1,5 +1,7 @@
 # 基于html的直播用sora水印
 [EN](https://github.com/AomiRaku/live-sora-watermark) | 中文
+
+
 一个基于html的直播用sora水印项目，使用obs等推流软件的内置浏览器源即可添加进画面。
 
 本质上就是一个把图片在页面左上、右中、左下轮流显示的网页。可自适应横屏、竖屏等尺寸。
