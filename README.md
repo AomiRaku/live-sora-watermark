@@ -1,34 +1,36 @@
-# 基于html的直播用sora水印
-一个基于html的直播用sora水印项目，使用obs等推流软件的内置浏览器源即可添加进画面。
+# HTML-based Sora Watermark for Live Streaming
+EN | [中文](https://github.com/AomiRaku/live-sora-watermark/blob/main/README_CN.md)
 
-本质上就是一个把图片在页面左上、右中、左下轮流显示的网页。可自适应横屏、竖屏等尺寸。
+An HTML-based Sora watermark project for live streaming, which can be added to the screen using the built-in browser source of streaming software like OBS.
 
-
-已预置了一个我做好的gif水印，长约4秒。
-
-默认水印高度为页面高度的 12% ，透明度 90% ，4 秒一换。可以修改 `index.html` 的源码自定义。（有注释）
-
-### 效果：
-Bilibili视频：https://b23.tv/kvdB63l
-
-<img  height="350" alt="预览" src="https://github.com/user-attachments/assets/8fce9c95-f7e5-4a31-b4cd-a6630a010d07" />
+Essentially, it is a webpage that displays images in rotation at the top-left, middle-right, and bottom-left of the page. It can adapt to horizontal, vertical, and other screen sizes.
 
 
-## 使用方法（以OBS为例）：
-- 下载源码后整个解压到一个位置；
-- 打开obs，点加号，添加一个浏览器源；
+A pre-made GIF watermark (about 4 seconds long) is included.
+
+By default, the watermark height is 12% of the page height, with 90% opacity, and it switches every 4 seconds. You can customize it by modifying the source code of `index.html` (there are comments).
+
+### Effect:
+Bilibili video: https://b23.tv/kvdB63l
+
+<img  height="350" alt="Preview" src="https://github.com/user-attachments/assets/8fce9c95-f7e5-4a31-b4cd-a6630a010d07" />
+
+
+## Usage (taking OBS as an example):
+- After downloading the source code, unzip the entire package to a location;
+- Open OBS, click the plus sign, and add a Browser source;
   
   <img  height="500" alt="1" src="https://github.com/user-attachments/assets/b62b37dc-dbda-43d4-b5cc-1c3d30aaea0e" />
 
-- 添加后，弹出的窗口勾选本地文件，选择解压出的 ` index.html ` ，然后设置一个合适的大小（根据画布大小而定），点确定。
+- After adding, in the pop-up window, check "Local file", select the extracted `index.html`, then set an appropriate size (depending on the canvas size), and click OK.
   
   <img height="500" alt="2" src="https://github.com/user-attachments/assets/c45b9fe6-0a43-4057-a58d-02effc022646" />
 
-- 完成，根据需要调整位置。
+- Done. Adjust the position as needed.
 
 
-## 其他
+## Others
 
-该项目使用了 Tailwind CSS：
+This project uses Tailwind CSS:
 
 https://github.com/tailwindlabs/tailwindcss
