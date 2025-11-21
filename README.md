@@ -1,6 +1,8 @@
 # HTML-based Sora Watermark for Live Streaming
 EN | [中文](https://github.com/AomiRaku/live-sora-watermark/blob/main/README_CN.md)
 
+[Download source code](https://github.com/AomiRaku/live-sora-watermark/releases)
+
 An HTML-based Sora watermark project for live streaming, which can be added to the screen using the built-in browser source of streaming software like OBS.
 
 Essentially, it is a webpage that displays images in rotation at the top-left, middle-right, and bottom-left of the page. It can adapt to horizontal, vertical, and other screen sizes.
