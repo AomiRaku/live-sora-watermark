@@ -1,6 +1,7 @@
 # 基于html的直播用sora水印
 [EN](https://github.com/AomiRaku/live-sora-watermark) | 中文
 
+[下载源码](https://github.com/AomiRaku/live-sora-watermark/releases)
 
 一个基于html的直播用sora水印项目，使用obs等推流软件的内置浏览器源即可添加进画面。
 
