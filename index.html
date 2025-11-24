@@ -1,143 +1,229 @@
 <!DOCTYPE html>
-<html lang="en">
-<!-- By Github:@AomiRaku，Bilibili:@羽梦千景。该代码由豆包辅助编写。-->
+<html lang="en-US">
+
+<!--
+made by
+Raku_Inkyetta  Github: https://github.com/AomiRaku Bili: https://space.bilibili.com/18251508
+又在摸鱼啊啊啊  Bili: https://space.bilibili.com/226208473
+and TRAE AI
+-->
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>live-sora-watermark</title>
-  <!-- Tailwind CSS v3 -->
-  <script src="js/tailwind.js"></script>
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          transitionTimingFunction: {
-            'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
-          },
-        },
-      }
+  <style>
+    body {
+      margin: 0; padding: 0; width: 100vw; height: 100vh;
+      overflow: hidden; background-color: black; position: relative;
     }
-  </script>
-
-  <style type="text/tailwindcss">
-    @layer utilities {
-      .gif-transition {
-        transition: opacity 0.6s ease-smooth, transform 0.6s ease-smooth, visibility 0.6s ease-smooth;
-      }
-      .gif-hidden {
-        opacity: 0;
-        visibility: hidden;
-        transform: scale(0.9);
-      }
-      .gif-visible {
-        opacity: 1;
-        visibility: visible;
-        transform: scale(1);
-      }
+    #activeGifContainer {
+      position: absolute; pointer-events: none; z-index: 50; visibility: hidden;
+      display: inline-block;
+    }
+    #activeGifContainer.gif-visible { visibility: visible; }
+    #activeGifImage {
+      display: block; object-fit: contain;
+      /* 移除阴影效果 */
+    }
+    /* 文字样式 */
+    .watermark-text {
+      position: absolute; bottom: 0; color: white; pointer-events: none;
+      line-height: 1.2; word-break: break-word; white-space: nowrap;
+      z-index: 1;
+    }
+    /* 移除左右类的默认边距，完全由JavaScript控制 */
+    .debug-safe-zone {
+      position: absolute; border: 2px dashed rgba(255, 0, 0, 0.5);
+      pointer-events: none; box-sizing: border-box; z-index: 0;
+    }
+    .debug-gif-border {
+      outline: 2px solid rgba(0, 100, 255, 0.8); background: rgba(0, 100, 255, 0.1);
     }
   </style>
 </head>
-<body class="bg-transparent overflow-hidden">
+<body>
 
-<div id="gif1" class="absolute top-4 left-4 gif-hidden gif-transition z-10">
-  <img src="gif/001.gif" alt="GIF 1" class="h-[15vh] opacity-90 object-contain">  <!-- 水印gif高度为15%页面高度，透明度为90%，下同 -->
-</div>
-
-
-<div id="gif2" class="absolute top-1/2 right-4 transform -translate-y-1/2 gif-hidden gif-transition z-10">
-  <img src="gif/002.gif" alt="GIF 2" class="h-[15vh] opacity-90 object-contain">
-</div>
-
-
-<div id="gif3" class="absolute bottom-4 left-4 gif-hidden gif-transition z-10">
-  <img src="gif/001.gif" alt="GIF 3" class="h-[15vh] opacity-90 object-contain">
+<div id="debugLayer" class="debug-safe-zone" style="display: none;"></div>
+<div id="activeGifContainer">
+  <img id="activeGifImage" src="" alt="Overlay">
+  <div id="watermarkText" class="watermark-text"></div>
 </div>
 
 <script>
-  // 获取GIF元素
-  const gif1 = document.getElementById('gif1');
-  const gif2 = document.getElementById('gif2');
-  const gif3 = document.getElementById('gif3');
+  // ==================================== 配置在此调整 ===========================================
+  // ====================================== CONFIG ============================================
 
-  // 每个GIF显示的时间（毫秒）
-  const displayTime = 4000; // 4秒
-  // 过渡动画时间
-  const transitionDuration = 0; // 无间隔
+  const CONFIG = {
+    text: "@im-not-sora",             // 水印下方文字                                      Watermark username text
 
-  // 显示指定的GIF
-  function showGif(gif) {
-    return new Promise(resolve => {
-      gif.classList.remove('gif-hidden');
-      gif.classList.add('gif-visible');
-      setTimeout(resolve, transitionDuration);
-    });
+    enableRandomPosition: false,      // false=固定循环(左上->右中->左下), true=随机模式   false = fixed cycle (top-left → middle-right → bottom-left), true = random mode
+    sizeVh: 11,                       // GIF高度占比 (vh)                              GIF height ratio (vh)
+    safeMarginPercent: 0,             // 两侧边距 (%)                                   Screen edge safe distance (%)
+    opacity: 0.9,                     // 不透明度 (0.0 - 1.0）（1.0为不透明)              Opacity (0.0 - 1.0) (1.0 = fully opaque)
+
+                        //以下不建议修改                                                 Modification not recommended ↓
+    displayTime: 4000,                // 显示时长 (毫秒)（GIF长度的原因，不建议修改）        Display duration (ms) (Not recommended to modify due to GIF length)
+    intervalTime: 0,                  // 切换空档时长 (毫秒)（GIF长度的原因，不建议修改）     Interval between switches (ms) (Not recommended to modify due to GIF length)
+    debug: false,                     // 调试模式开关（正常使用不要开启）                   Debug mode switch (Do not enable for normal use)
+    paths: {
+      left: 'gif/001.gif',            // 左GIF路径                                     Left GIF path
+      right: 'gif/002.gif'            // 右GIF路径                                     Right GIF path
+    }
+  };
+  // ============================================================================================
+
+  // --- 逻辑与状态 ---
+  const state = { nextSideIsLeft: true, fixedIndex: 0 };
+  const assetRatios = { left: 1, right: 1 };
+  const container = document.getElementById('activeGifContainer');
+  const image = document.getElementById('activeGifImage');
+  const debugLayer = document.getElementById('debugLayer');
+  const watermarkText = document.getElementById('watermarkText');
+
+  // 从 URL 获取参数覆盖配置
+  function overrideConfigFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('random')) CONFIG.enableRandomPosition = params.get('random') === 'true';
+    if (params.has('size')) CONFIG.sizeVh = Number(params.get('size'));
+    if (params.has('margin')) CONFIG.safeMarginPercent = Number(params.get('margin'));
+    if (params.has('opacity')) CONFIG.opacity = Number(params.get('opacity'));
+    if (params.has('display')) CONFIG.displayTime = Number(params.get('display'));
+    if (params.has('interval')) CONFIG.intervalTime = Number(params.get('interval'));
+    if (params.has('debug')) CONFIG.debug = params.get('debug') === 'true';
+    if (params.has('text')) CONFIG.text = params.get('text');
+    if (params.has('left')) CONFIG.paths.left = params.get('left');
+    if (params.has('right')) CONFIG.paths.right = params.get('right');
   }
 
-  // 隐藏指定的GIF
-  function hideGif(gif) {
-    return new Promise(resolve => {
-      gif.classList.remove('gif-visible');
-      gif.classList.add('gif-hidden');
-      setTimeout(resolve, transitionDuration);
-    });
-  }
+  // 初始化样式
+  function initStyles() {
+    overrideConfigFromUrl();
+    image.style.height = `${CONFIG.sizeVh}vh`;
+    image.style.opacity = CONFIG.opacity;
+    // 让水印文字透明度也跟随统一设置
+    watermarkText.style.opacity = CONFIG.opacity;
+    watermarkText.textContent = CONFIG.text;
 
-  // 隐藏所有GIF
-  function hideAllGifs() {
-    [gif1, gif2, gif3].forEach(gif => {
-      gif.classList.remove('gif-visible');
-      gif.classList.add('gif-hidden');
-    });
-  }
+    // 设置容器为相对定位，使文字能基于容器定位
+    container.style.position = 'relative';
 
-  // 延迟函数
-  function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  // 动画序列
-  async function playAnimationSequence() {
-    try {
-      // 重置所有GIF状态
-      hideAllGifs();
-      await delay(100);
-
-      // 显示第一幅GIF
-      await showGif(gif1);
-      await delay(displayTime);
-      await hideGif(gif1);
-
-      // 显示第二幅GIF
-      await showGif(gif2);
-      await delay(displayTime);
-      await hideGif(gif2);
-
-      // 显示第三幅GIF
-      await showGif(gif3);
-      await delay(displayTime);
-      await hideGif(gif3);
-
-      // 重新开始循环
-      await delay(0);
-      playAnimationSequence();
-    } catch (error) {
-      console.error('动画出错:', error);
-      // 出错时重试
-      setTimeout(playAnimationSequence, 1000);
+    // 调试模式设置
+    if (CONFIG.debug) {
+      const margin = CONFIG.safeMarginPercent ?? 0;
+      debugLayer.style.display = 'block';
+      debugLayer.style.top = `${margin}vh`; debugLayer.style.left = `${margin}vw`;
+      debugLayer.style.width = `${100 - margin * 2}vw`; debugLayer.style.height = `${100 - margin * 2}vh`;
+      container.classList.add('debug-gif-border');
     }
   }
 
-  // 页面加载完成后开始动画
-  window.addEventListener('load', playAnimationSequence);
+  // 预加载资源并计算比例
+  function preloadAssets() {
+    const loadPromise = (path, key) => new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => { if (img.naturalHeight > 0) assetRatios[key] = img.naturalWidth / img.naturalHeight; resolve(); };
+      img.onerror = () => resolve();
+      img.src = path;
+    });
+    return Promise.all([loadPromise(CONFIG.paths.left, 'left'), loadPromise(CONFIG.paths.right, 'right')]);
+  }
 
-  // 监听窗口大小变化，确保位置始终正确
-  window.addEventListener('resize', () => {
-    // 重新计算位置（使用CSS定位已自动处理，这里仅作保险）
-    hideAllGifs();
+  // 计算并设置位置
+  function calculateAndSetPosition() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const isLeftCurrent = CONFIG.enableRandomPosition ? state.nextSideIsLeft : (state.fixedIndex !== 1);
+    
+    const currentRatio = isLeftCurrent ? assetRatios.left : assetRatios.right;
+    const currentPath = isLeftCurrent ? CONFIG.paths.left : CONFIG.paths.right;
+    
+    const gifHeight = vh * (CONFIG.sizeVh / 100);
+    const gifWidth = gifHeight * currentRatio;
+    const marginPercent = CONFIG.safeMarginPercent ?? 0;
+    const marginX = vw * (marginPercent / 100); 
+    const marginY = vh * (marginPercent / 100);
+
+    // 设置GIF图片
+    image.src = currentPath;
+    
+    // 设置文字样式和位置
+    const textSize = gifHeight / 5; // 字体大小为gif高度的五分之一
+    const textMargin = gifHeight; // 文字水平边距与gif高度相同
+    const textMarginBottom = gifHeight / 6; // 文字底边距为gif高度的六分之一
+    
+    watermarkText.style.fontSize = `${textSize}px`;
+    watermarkText.style.bottom = `${textMarginBottom}px`;
+    // 确保文字透明度与GIF一致
+    watermarkText.style.opacity = CONFIG.opacity;
+    
+    // 移除可能存在的left/right样式
+    watermarkText.style.left = '';
+    watermarkText.style.right = '';
+    watermarkText.style.textAlign = '';
+    
+    if (isLeftCurrent) {
+      // 左侧水印：左对齐，左边距与gif高度相同
+      watermarkText.style.left = `${textMargin}px`;
+      watermarkText.style.textAlign = 'left';
+    } else {
+      // 右侧水印：右对齐，右边距与gif高度相同
+      watermarkText.style.right = `${textMargin}px`;
+      watermarkText.style.textAlign = 'right';
+    }
+
+    // 设置容器尺寸以适应GIF
+    container.style.width = `${gifWidth}px`;
+    container.style.height = `${gifHeight}px`;
+
+    if (CONFIG.enableRandomPosition) {
+      const minY = marginY, maxY = vh - gifHeight - marginY;
+      const randomTop = minY + Math.random() * Math.max(0, maxY - minY);
+      const centerX = vw / 2;
+      let minX, maxX;
+
+      if (isLeftCurrent) { minX = marginX; maxX = centerX - gifWidth - marginX; }
+      else { minX = centerX + marginX; maxX = vw - gifWidth - marginX; }
+
+      // 防溢出计算
+      container.style.left = (maxX < minX) 
+        ? `${(isLeftCurrent ? 0 : centerX) + (vw/2 - gifWidth)/2}px` 
+        : `${minX + Math.random() * (maxX - minX)}px`;
+      container.style.top = `${randomTop}px`;
+      state.nextSideIsLeft = !state.nextSideIsLeft;
+
+    } else {
+      switch (state.fixedIndex) {
+        case 0: container.style.left = `${marginX}px`; container.style.top = `${marginY}px`; break;
+        case 1: container.style.left = `${vw - gifWidth - marginX}px`; container.style.top = `${(vh - gifHeight)/2}px`; break;
+        case 2: container.style.left = `${marginX}px`; container.style.top = `${vh - gifHeight - marginY}px`; break;
+      }
+      state.fixedIndex = (state.fixedIndex + 1) % 3;
+    }
+  }
+
+  // 延迟工具函数
+  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  // 动画主循环
+  async function startLoop() {
+    while (true) {
+      try {
+        calculateAndSetPosition();
+        container.classList.remove('gif-visible'); container.style.visibility = 'visible'; container.classList.add('gif-visible');
+        await delay(CONFIG.displayTime);
+        container.style.visibility = 'hidden'; container.classList.remove('gif-visible');
+        await delay(CONFIG.intervalTime);
+      } catch (e) { console.error(e); await delay(1000); }
+    }
+  }
+
+  // 页面加载完成后启动
+  window.addEventListener('load', async () => { 
+    initStyles(); 
+    await preloadAssets(); 
+    startLoop(); 
   });
 </script>
 </body>
-
 </html>
-
