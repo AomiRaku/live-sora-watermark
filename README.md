@@ -1,6 +1,6 @@
 # HTML-Based Sora Watermark for Live Streaming
 
-[中文](https://github.com/AomiRaku/live-sora-watermark) | EN
+EN |  [中文](https://github.com/AomiRaku/live-sora-watermark/blob/main/README_CN.md)
 
 An HTML-based Sora watermark project for live streaming. Add it to your stream using the built-in Browser Source in streaming software like OBS.
 
