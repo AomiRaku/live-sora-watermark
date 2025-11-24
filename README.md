@@ -46,6 +46,6 @@ Open `index.html` with a text editor to configure the settings.
 
 ## Others
 
-Feel free to follow my Bilibili account [@Yumeng Qianjing](https://space.bilibili.com/18251508) – Thank you ~
+Feel free to follow my Bilibili account [@Raku Inkyetta](https://space.bilibili.com/18251508) – Thank you ~
 
-A huge thank you to Bilibili user [@YouZaiMoYuAaaa](https://space.bilibili.com/226208473) for optimization and technical support !
+A huge thank you to Bilibili user [@又在摸鱼啊啊啊](https://space.bilibili.com/226208473) for optimization and technical support !
