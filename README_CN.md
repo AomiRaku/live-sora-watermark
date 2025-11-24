@@ -8,6 +8,8 @@
 
 水印大小、水印下方文字、不透明度、随机位置等可以自定义。
 
+ [下载](https://github.com/AomiRaku/live-sora-watermark/releases)
+
 ### 效果：
 
 Bilibili预览视频：https://b23.tv/kvdB63l
