@@ -8,6 +8,8 @@ Adapts to horizontal, vertical, and other aspect ratios automatically.
 
 Customizable options include watermark size, text below the watermark, opacity, random position, and more.
 
+ [Download](https://github.com/AomiRaku/live-sora-watermark/releases)
+
 ### Demo:
 
 Bilibili Preview Video: [https://b23.tv/kvdB63l](https://b23.tv/kvdB63l)
